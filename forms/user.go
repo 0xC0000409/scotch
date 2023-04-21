@@ -1,7 +1,16 @@
 package forms
 
 type UserCreateForm struct {
-	Username string `json:"username" binding:"required,alphanum,min=4,max=255"`
-	Email    string `json:"email" binding:"required,email,unique_email"`
-	Password string `json:"password" binding:"required,min=8,max=255"`
+	Email     string `json:"email" binding:"required,email,unique_email"`
+	FirstName string `json:"first_name" binding:"required,alpha,min=2,max=32"`
+	LastName  string `json:"last_name" binding:"required,alpha,min=2,max=32"`
+}
+
+type TestForm struct {
+	Test string `json:"test" binding:"required,alpha,min=2,max=32"`
+}
+
+type UserUpdateForm struct {
+	FirstName string `json:"first_name" binding:"omitempty,alpha,min=2,max=32"`
+	LastName  string `json:"last_name" binding:"omitempty,alpha,min=2,max=32"`
 }
