@@ -6,10 +6,6 @@ type UserCreateForm struct {
 	LastName  string `json:"last_name" binding:"required,alpha,min=2,max=32"`
 }
 
-type TestForm struct {
-	Test string `json:"test" binding:"required,alpha,min=2,max=32"`
-}
-
 type UserUpdateForm struct {
 	FirstName string `json:"first_name" binding:"omitempty,alpha,min=2,max=32"`
 	LastName  string `json:"last_name" binding:"omitempty,alpha,min=2,max=32"`

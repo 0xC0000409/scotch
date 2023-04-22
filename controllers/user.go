@@ -19,14 +19,26 @@ func usersGetController(c *gin.Context) {
 
 func userGetController(c *gin.Context) {
 	var uri pkg.UriIntId
-	_ = c.BindUri(&uri)
+	if err := c.BindUri(&uri); err != nil {
+		return
+	}
 
-	c.JSON(http.StatusOK, gin.H{"foo": uri.ID})
+	var user models.User
+	result := db.Instance().First(&user, uri.ID)
+
+	if result.RowsAffected == 0 {
+		c.AbortWithStatus(http.StatusNotFound)
+		return
+	}
+
+	c.JSON(http.StatusOK, user)
 }
 
 func userPostController(c *gin.Context) {
 	var newUser forms.UserCreateForm
-	_ = c.BindJSON(&newUser)
+	if err := pkg.BindJsonPretty(c, &newUser); err != nil {
+		return
+	}
 
 	db.Instance().Create(&models.User{
 		Email:     newUser.Email,
@@ -39,10 +51,14 @@ func userPostController(c *gin.Context) {
 
 func userPatchController(c *gin.Context) {
 	var uri pkg.UriIntId
-	_ = c.BindUri(&uri)
+	if err := c.BindUri(&uri); err != nil {
+		return
+	}
 
 	var updateUser forms.UserUpdateForm
-	_ = c.BindJSON(&updateUser)
+	if err := pkg.BindJsonPretty(c, &updateUser); err != nil {
+		return
+	}
 
 	var user models.User
 	result := db.Instance().First(&user, uri.ID)
@@ -58,7 +74,9 @@ func userPatchController(c *gin.Context) {
 
 func userDeleteController(c *gin.Context) {
 	var uri pkg.UriIntId
-	_ = c.BindUri(&uri)
+	if err := c.BindUri(&uri); err != nil {
+		return
+	}
 
 	if db.Instance().Delete(&models.User{}, uri.ID).RowsAffected == 0 {
 		c.AbortWithStatus(http.StatusNotFound)
@@ -68,16 +86,12 @@ func userDeleteController(c *gin.Context) {
 }
 
 func RegisterUserRoutes(router *gin.RouterGroup) {
-	router.GET("/users", usersGetController)
+	router.GET("users", usersGetController)
 	user := router.Group("user")
 	{
-		user.GET("/:id", pkg.MustBindUri(pkg.UriIntId{}), userGetController)
-		user.POST("/", pkg.MustBindJsonPretty(forms.UserCreateForm{}), userPostController)
-		user.Use().PATCH("/:id",
-			pkg.MustBindUri(pkg.UriIntId{}),
-			pkg.MustBindJsonPretty(forms.UserUpdateForm{}),
-			userPatchController,
-		)
-		user.DELETE("/:id", pkg.MustBindUri(pkg.UriIntId{}), userDeleteController)
+		user.GET(":id", userGetController)
+		user.POST("", userPostController)
+		user.PATCH(":id", userPatchController)
+		user.DELETE(":id", userDeleteController)
 	}
 }
