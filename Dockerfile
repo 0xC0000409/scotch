@@ -1,9 +1,19 @@
-FROM golang:1.20.3-alpine3.17
+FROM golang:1.20.5-alpine3.18
 
-WORKDIR app
+RUN adduser -D scotch
 
-COPY . ./
+RUN apk update
 
-RUN apk update && go install github.com/cosmtrek/air@latest && go get .
+WORKDIR /go/app
+
+COPY . .
+
+RUN chown -R scotch:scotch .
+
+USER scotch
+
+RUN go install github.com/cosmtrek/air@latest && go get .
+
+EXPOSE 80
 
 ENTRYPOINT ["air"]
